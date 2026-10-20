@@ -335,7 +335,7 @@ function about(): HTMLElement {
       h('code', null, 'Show Existentials.'),
       ' and the goals. The teal highlight is a structural diff between consecutive terms; nothing is hand-written. Rocq is the new name of Coq (version 9 onwards); jsCoq still ships Coq 8.17.',
     ),
-    h('p', null, 'Related tools: Coq’s own ', h('code', null, 'Show Proof.'), ' and ', h('code', null, 'Show Proof Diffs'), ' (term as text, run by hand); Prooftree (proof trees of goals); Alectryon (goals and responses inline); jsCoq (in-browser Coq); Paperproof for Lean. See the README for a comparison.'),
+    h('p', null, 'Related tools: Coq’s ', h('code', null, 'Show Proof.'), ' prints the partial term as text, and ', h('code', null, 'Show Proof Diffs'), ' highlights changes between consecutive goals, not terms. Prooftree draws trees of goals. Alectryon interleaves goals with a script. coq-psv exports proof scripts with their states. Paperproof does the goal-tree view for Lean. None of them put the script and the growing term side by side with a stepper; see the README for details.'),
   );
 }
 
