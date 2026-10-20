@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import gallery from '../src/data/gallery.json';
 import { diffTerms } from '../src/core/diff';
+import { analyze } from '../src/core/analyze';
 import { parseSpans } from '../src/core/term';
 import type { Step, Trace } from '../src/core/types';
 
@@ -85,6 +86,23 @@ describe('what tactics build (real Show Proof output)', () => {
     expect(t).toBe('(fun n : nat => ?Goal n)');
     expect(newText('revert', /^revert n/)).toEqual(['n']);
     expect(newText('revert', /^revert n/)).not.toContain('fun');
+  });
+  it('the fragment a step built (hole goals included) reads naturally', () => {
+    const built = (id: string, re: RegExp) => analyze(G[id], G[id].steps.indexOf(after(id, re))).built;
+    expect(built('intro', /^intros P Q/)).toBe('(fun P Q : Prop => ?Goal)');
+    expect(built('intro', /^intro p/)).toBe('(p : P) => ?Goal');
+    expect(built('split', /^split/)).toBe('conj ?Goal ?Goal0');
+    expect(built('left', /^left/)).toBe('or_introl ?Goal');
+    expect(built('revert', /^revert n/)).toBe('?Goal n');
+    expect(built('exact', /^exact p/)).toBe('p');
+    expect(built('split', /^exact p/)).toBe('p');
+    expect(built('apply', /^apply g/)).toBe('g ?Goal');
+  });
+  it('bullets build nothing', () => {
+    for (const [id, tr] of Object.entries(G))
+      tr.steps.forEach((s, i) => {
+        if (s.kind === 'tactic' && /^[-+*{}]+$/.test(s.text)) expect(analyze(tr, i).built, `${id} ${i}`).toBeUndefined();
+      });
   });
   it('every trace ends with a closed proof and Qed', () => {
     for (const [id, tr] of Object.entries(G)) {

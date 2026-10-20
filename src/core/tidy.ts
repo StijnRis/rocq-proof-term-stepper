@@ -90,7 +90,7 @@ class Builder {
           if (this.o.collapse && !this.o.expanded.has(k)) {
             const nm = units(f)[0].name.text;
             const isNew = tokensOf(n).some((t) => this.o.marks.has(t.id));
-            parts.push(seg({ text: `(fun ${nm} ⇒ …)`, cls: `chip${isNew ? ' new' : ''}`, chip: k }));
+            parts.push(seg({ text: `(fun ${nm} => …)`, cls: `chip${isNew ? ' new' : ''}`, chip: k }));
           } else {
             parts.push(this.node(n));
             if (this.o.collapse) parts.push(seg({ text: ' ⊖', cls: 'chip-toggle', chip: k }));
