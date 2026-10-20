@@ -1,0 +1,8 @@
+node_modules
+dist
+public/jscoq
+*.log
+.DS_Store
+test-results
+.scratch
+.vite
