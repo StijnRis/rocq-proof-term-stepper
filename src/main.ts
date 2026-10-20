@@ -228,9 +228,9 @@ function scriptSide(t: Trace | undefined): HTMLElement {
     const libs = h('select', { 'aria-label': 'Libraries', onchange: (e: Event) => (state.libs = (e.target as HTMLSelectElement).value as Libs) });
     for (const [v, label] of [
       ['init', 'Prelude only (fastest, ~5 MB)'],
-      ['arith', '+ Arith, ZArith, Strings (~21 MB)'],
+      ['arith', '+ Arith, ZArith, Lists, Strings (~31 MB)'],
       ['lists', '+ Lists, Sets, Vectors (~20 MB)'],
-      ['all', 'All of the above (~31 MB)'],
+      ['all', 'Everything (~31 MB)'],
     ] as const)
       libs.append(h('option', { value: v, selected: state.libs === v ? true : null }, label));
     panel.append(
@@ -268,7 +268,7 @@ async function runPaste() {
     const { Coq } = await import('./engine/coq');
     const { buildTrace } = await import('./core/trace');
     if (!engine || engine.libs !== state.libs) {
-      const packages = { init: ['init'], arith: ['init', 'coq-base', 'coq-arith'], lists: ['init', 'coq-base', 'coq-collections'], all: ['init', 'coq-base', 'coq-arith', 'coq-collections'] }[state.libs];
+      const packages = { init: ['init'], arith: ['init', 'coq-base', 'coq-collections', 'coq-arith'], lists: ['init', 'coq-base', 'coq-collections'], all: ['init', 'coq-base', 'coq-arith', 'coq-collections'] }[state.libs];
       const coq = await Coq.create({
         base: import.meta.env.BASE_URL + 'jscoq/',
         packages,

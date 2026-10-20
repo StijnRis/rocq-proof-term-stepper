@@ -51,8 +51,10 @@ export class Coq {
   private tip = 0;
   private firstSid = 0;
   private chainStart?: number;
+  private libPath: [string[], string[]][] = [];
 
   private added = new Set<number>();
+  private pending = new Set<number>();
   private processed = new Set<number>();
   private messages = new Map<number, CoqMessage[]>();
   private errors = new Map<number, Pp>();
@@ -94,6 +96,11 @@ export class Coq {
         break;
       case 'Added':
         this.added.add(m[1] as number);
+        break;
+      case 'Pending':
+        // `Require` of modules not yet resolved; our packages are already in the
+        // virtual file system, so the sentence just has to be added again with resolve=true.
+        this.pending.add(m[1] as number);
         break;
       case 'Feedback': {
         const fb = m[1] as { span_id: number; contents: unknown[] };
@@ -161,8 +168,9 @@ export class Coq {
       for (const p of prefixes) libPath.push([p.split('.'), ['/lib']]);
     }
 
+    this.libPath = libPath;
     status('Initialising Coq…');
-    this.host.send(['Init', { implicit_libs: false, coq_options: [], debug: { coq: false, stm: false }, lib_path: libPath }]);
+    this.host.send(['Init', { implicit_libs: true, coq_options: [], debug: { coq: false, stm: false }, lib_path: libPath }]);
     this.host.send(['NewDoc', { lib_init: ['Coq.Init.Prelude'] }]);
     this.tip = this.firstSid = await this.ready.promise;
     this.nextSid = this.tip + 1;
@@ -175,7 +183,13 @@ export class Coq {
     this.chainStart ??= sid;
     this.lastError = undefined;
     this.host.send(['Add', this.tip, sid, sentence, false]);
-    await this.until(() => this.added.has(sid) || this.lastError !== undefined, `parse of «${sentence}»`);
+    await this.until(() => this.added.has(sid) || this.pending.has(sid) || this.lastError !== undefined, `parse of «${sentence}»`);
+    if (this.pending.has(sid) && !this.added.has(sid)) {
+      this.pending.delete(sid);
+      this.host.send(['ReassureLoadPath', this.libPath]);
+      this.host.send(['Add', this.tip, sid, sentence, true]);
+      await this.until(() => this.added.has(sid) || this.lastError !== undefined, `resolving «${sentence}»`);
+    }
     if (!this.added.has(sid)) return { ok: false, messages: [], error: this.lastError };
     this.host.send(['Exec', sid]);
     await this.until(() => this.processed.has(sid) || this.errors.has(sid), `«${sentence}»`);
