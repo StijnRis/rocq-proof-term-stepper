@@ -52,6 +52,9 @@ body {
 code,
 pre,
 textarea,
+.hyps,
+.concl,
+.binders,
 .probe {
   font-family: var(--mono);
   font-size: 13px;

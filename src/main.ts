@@ -69,6 +69,13 @@ function go(step: number) {
   render();
 }
 
+/** Pixels available to the term text, estimated from the viewport (panels are not attached yet while rendering). */
+function termWidthPx(): number {
+  const inner = Math.min(document.body.clientWidth, 1280) - (document.body.clientWidth <= 860 ? 32 : 48);
+  const panel = document.body.clientWidth <= 860 ? inner : (inner - 16) * (7 / 12);
+  return panel - 32 - 28; // panel padding + term padding and border
+}
+
 function charWidth(): number {
   const probe = h('span', { class: 'probe' }, 'MMMMMMMMMM');
   document.body.append(probe);
@@ -198,7 +205,7 @@ function termPanel(t: Trace): HTMLElement {
     return panel;
   }
   if (s.kind === 'qed') {
-    body.append(qedView(t, v, Math.floor(body.clientWidth / charWidth()) || 60));
+    body.append(qedView(t, v, Math.floor(termWidthPx() / charWidth())));
     return panel;
   }
 
@@ -211,7 +218,7 @@ function termPanel(t: Trace): HTMLElement {
   if (state.tab === 'tree' && tree) {
     body.append(inductionView(tree, v));
   } else {
-    const cols = Math.max(24, Math.floor((panel.clientWidth || 560) / charWidth()) - 4);
+    const cols = Math.max(24, Math.floor(termWidthPx() / charWidth()) - 4);
     body.append(termPre(v, { mode: state.mode, binderTypes: state.binderTypes, collapse: state.collapse, expanded: state.expanded, width: cols }, termHandlers));
   }
   panel.append(goalsList(s.holes, termHandlers));
