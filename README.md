@@ -76,6 +76,13 @@ Checked on Coq 8.17.1 / 8.18.0; the examples are in the gallery.
 I found no tool that puts the script and the growing term side by side with a stepper (searches on the
 Rocq Discourse, arXiv, Reservoir and general web, October 2026; absence of evidence, not proof of absence).
 
+## Search and sharing
+
+The app uses hash routes, which search engines treat as one page, so `pnpm build` also prerenders real HTML
+(`scripts/prerender.mjs`): `/tactics/` plus one page per example with the script and the recorded term after every
+sentence, a sitemap, `robots.txt`, canonical URLs, Open Graph/Twitter tags and JSON-LD. Page titles in the app follow the
+route, and every step has a shareable link (Copy link button). Set `SITE_URL` when building for another host.
+
 ## Limitations
 
 * jsCoq ships Coq **8.17.1**, not Rocq 9. Output for the covered tactics is identical on 8.18 (checked); newer versions may print differently.
@@ -90,7 +97,8 @@ Rocq Discourse, arXiv, Reservoir and general web, October 2026; absence of evide
 pnpm install
 pnpm dev            # copies the jsCoq assets into public/ and starts Vite
 pnpm test           # unit tests (parser, diff, layout, accuracy)
-pnpm build          # type-check and build to dist/
+pnpm build          # type-check, build, then prerender the static pages into dist/
+pnpm og             # re-render public/og.png (social preview) from recorded data
 pnpm e2e            # browser checks against the build (set CHROMIUM_PATH if needed)
 pnpm gen:gallery    # re-record src/data/gallery.json with the real engine
 pnpm check:native   # compare the recorded gallery with a native coqc

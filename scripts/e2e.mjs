@@ -57,6 +57,41 @@ const ok = (name) => console.log('✓', name);
   await p.close();
 }
 
+// 1b. Titles follow the route, play advances, skip link keeps the route, autoplay stops on manual step.
+{
+  const p = await open('#/ex/apply/0');
+  assert.match(await p.title(), /Applying a hypothesis: apply H · step 1\/6/);
+  await p.click('button:has-text("Play")');
+  await p.waitForFunction(() => document.querySelector('.steplabel')?.textContent?.includes('Step 3'), null, { timeout: 15000 });
+  await p.click('button:has-text("Pause")');
+  assert.match(await p.locator('#live').innerText().catch(async () => await p.locator('#live').textContent()), /Step \d of 6/);
+  await p.keyboard.press('Tab');
+  await p.focus('.skip');
+  await p.keyboard.press('Enter');
+  assert.match(p.url(), /#\/ex\/apply\//);
+  await p.goto(base + '#/gallery');
+  assert.match(await p.title(), /Tactic gallery/);
+  await p.close();
+  ok('titles, play/pause, live region, skip link');
+}
+
+// 1c. Prerendered static pages exist and are indexable.
+{
+  const page = await browser.newPage();
+  const res = await page.goto(base + 'tactics/split/');
+  assert.equal(res.status(), 200);
+  assert.match(await page.title(), /Proving a conjunction: split/);
+  assert.equal(await page.locator('link[rel=canonical]').getAttribute('href'), 'https://stijnris.github.io/rocq-proof-term-stepper/tactics/split/');
+  assert.match(await page.locator('ol.steps').innerText(), /conj \?Goal \?Goal0/);
+  assert.ok((await page.locator('script[type="application/ld+json"]').count()) === 1);
+  const sm = await (await page.goto(base + 'sitemap.xml')).text();
+  assert.ok((sm.match(/<loc>/g) ?? []).length >= 19);
+  assert.equal((await page.goto(base + 'robots.txt')).status(), 200);
+  assert.equal((await page.goto(base + 'og.png')).status(), 200);
+  await page.close();
+  ok('prerendered pages, sitemap, robots, og image');
+}
+
 // 2. Gallery lists one card per example.
 {
   const p = await open('#/gallery');

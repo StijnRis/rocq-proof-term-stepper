@@ -854,3 +854,59 @@ pre.coq-out {
     animation: none;
   }
 }
+
+/* ---- accessibility / extras ---- */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+.skip {
+  position: absolute;
+  left: 8px;
+  top: -48px;
+  z-index: 100;
+  background: var(--teal);
+  color: #fff;
+  padding: 8px 14px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+}
+.skip:focus {
+  top: 8px;
+}
+.static-intro {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 32px 24px;
+}
+.static-intro h1 {
+  letter-spacing: -0.01em;
+}
+.nextbox {
+  display: flex;
+  gap: 8px;
+}
+.pick .btn.small {
+  margin-left: auto;
+  white-space: nowrap;
+}
+main:focus {
+  outline: none;
+}
+@media (max-width: 860px) {
+  .stepper {
+    grid-template-columns: 1fr;
+  }
+  .stepper > .btn,
+  .nextbox {
+    justify-self: stretch;
+  }
+  .nextbox .btn {
+    flex: 1;
+  }
+}

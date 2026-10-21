@@ -63,6 +63,7 @@ function writeHash() {
 const trace = (): Trace | undefined => (state.page === 'paste' ? state.pasteTrace : G[state.exampleId]);
 
 function go(step: number) {
+  stopPlay();
   const t = trace();
   if (!t) return;
   state.step = Math.min(Math.max(0, step), t.steps.length - 1);
@@ -130,6 +131,35 @@ function showCard(step: number | null, anchor: HTMLElement | null) {
 
 // -------------------------------------------------------------------- panels
 
+let timer: number | undefined;
+function stopPlay() {
+  if (timer !== undefined) {
+    clearInterval(timer);
+    timer = undefined;
+  }
+}
+function togglePlay() {
+  const t = trace();
+  if (!t) return;
+  if (timer !== undefined) {
+    stopPlay();
+    render();
+    return;
+  }
+  if (state.step >= t.steps.length - 1) state.step = 0;
+  timer = window.setInterval(() => {
+    const cur = trace();
+    if (!cur || state.step >= cur.steps.length - 1) {
+      stopPlay();
+      render();
+      return;
+    }
+    state.step++;
+    render();
+  }, 1800);
+  render();
+}
+
 function stepperBar(t: Trace): HTMLElement {
   const dots = h('div', { class: 'dots', role: 'tablist', 'aria-label': 'Steps' });
   t.steps.forEach((s, i) => {
@@ -151,7 +181,12 @@ function stepperBar(t: Trace): HTMLElement {
     { class: 'stepper' },
     h('button', { class: 'btn', type: 'button', disabled: state.step === 0, onclick: () => go(state.step - 1) }, '← Back'),
     h('div', { class: 'stepmid' }, dots, h('div', { class: 'steplabel' }, `Step ${state.step + 1} of ${t.steps.length}`, h('span', { class: 'muted' }, ' · '), h('code', null, cur.text.length > 48 ? cur.text.slice(0, 46) + '…' : cur.text))),
-    h('button', { class: 'btn primary', type: 'button', disabled: state.step === t.steps.length - 1, onclick: () => go(state.step + 1) }, 'Next →'),
+    h(
+      'div',
+      { class: 'nextbox' },
+      h('button', { class: 'btn', type: 'button', 'aria-pressed': timer !== undefined, title: 'Step through automatically (space)', onclick: togglePlay }, timer !== undefined ? '⏸ Pause' : '▶ Play'),
+      h('button', { class: 'btn primary', type: 'button', disabled: state.step === t.steps.length - 1, onclick: () => go(state.step + 1) }, 'Next →'),
+    ),
   );
 }
 
@@ -323,10 +358,20 @@ function header(): HTMLElement {
   );
 }
 
+async function copyLink(btn: HTMLButtonElement) {
+  try {
+    await navigator.clipboard.writeText(location.href);
+    btn.textContent = 'Link copied ✓';
+  } catch {
+    btn.textContent = 'Press Ctrl+C on the address bar';
+  }
+  setTimeout(() => (btn.textContent = '🔗 Copy link to this step'), 2000);
+}
+
 function examplePicker(): HTMLElement {
   const sel = h('select', { class: 'examples', 'aria-label': 'Example', onchange: (e: Event) => ((state.exampleId = (e.target as HTMLSelectElement).value), (state.step = 0), (state.tab = 'term'), render()) });
   for (const ex of EXAMPLES) sel.append(h('option', { value: ex.id, selected: ex.id === state.exampleId ? true : null }, `${ex.tactic} — ${ex.title}`));
-  return h('div', { class: 'pick' }, h('label', { for: 'example-select' }, 'Example'), Object.assign(sel, { id: 'example-select' }));
+  return h('div', { class: 'pick' }, h('label', { for: 'example-select' }, 'Example'), Object.assign(sel, { id: 'example-select' }), h('button', { class: 'btn small', type: 'button', onclick: (e: Event) => void copyLink(e.currentTarget as HTMLButtonElement) }, '🔗 Copy link to this step'));
 }
 
 function about(): HTMLElement {
@@ -349,15 +394,51 @@ function about(): HTMLElement {
   );
 }
 
+const SITE_TITLE = 'Rocq (Coq) proof term stepper';
+function updateMeta(t: Trace | undefined) {
+  let title = `${SITE_TITLE}: see what each tactic builds`;
+  let desc = 'Step through a Rocq (formerly Coq) proof and watch each tactic build the proof term. Real Show Proof output, run in your browser.';
+  if (state.page === 'gallery') {
+    title = `Tactic gallery · ${SITE_TITLE}`;
+    desc = 'One example per Rocq tactic with the fragment of the proof term Coq built for it.';
+  } else if (state.page === 'paste') {
+    title = `Run your own script · ${SITE_TITLE}`;
+    desc = 'Paste a Rocq script and watch it build the proof term, run by Coq in your browser.';
+  } else if (t) {
+    const ex = EXAMPLES.find((e) => e.id === state.exampleId);
+    title = `${ex ? `${ex.title}: ${ex.tactic}` : 'Proof'} · step ${state.step + 1}/${t.steps.length} · ${SITE_TITLE}`;
+    desc = ex?.blurb ?? desc;
+  }
+  document.title = title;
+  document.querySelector('meta[name="description"]')?.setAttribute('content', desc);
+}
+
+/** Screen-reader announcement of the current step. */
+function announce(t: Trace | undefined) {
+  let live = document.getElementById('live');
+  if (!live) {
+    live = h('div', { id: 'live', class: 'sr-only', 'aria-live': 'polite', 'aria-atomic': 'true' });
+    document.body.append(live);
+  }
+  if (!t || state.page === 'gallery') {
+    live.textContent = '';
+    return;
+  }
+  const s = t.steps[state.step];
+  const v = analyze(t, state.step);
+  live.textContent = `Step ${state.step + 1} of ${t.steps.length}: ${s.text}. ${v.built ? `Built ${v.built}.` : s.kind === 'qed' ? 'The kernel checks the finished term.' : 'No new structure.'} ${s.holes.length} open ${s.holes.length === 1 ? 'goal' : 'goals'}.`;
+}
+
 let lastKey = '';
 function render() {
   hideCard();
+  if (state.page === 'gallery') stopPlay();
   writeHash();
   const key = `${state.page}`;
   const scroll = window.scrollY;
   clear(app);
   app.append(header());
-  const main = h('main', { class: 'main' });
+  const main = h('main', { class: 'main', id: 'main', tabindex: -1 });
   app.append(main);
 
   if (state.page === 'gallery') {
@@ -381,6 +462,8 @@ function render() {
     }
   }
   main.append(about());
+  updateMeta(trace());
+  announce(trace());
   if (key === lastKey) window.scrollTo(0, scroll);
   lastKey = key;
 }
@@ -394,7 +477,8 @@ window.addEventListener('keydown', (e) => {
   if (['TEXTAREA', 'SELECT', 'INPUT'].includes(tgt.tagName)) return;
   const t = trace();
   if (!t || state.page === 'gallery') return;
-  if (e.key === 'ArrowRight') (e.preventDefault(), go(state.step + 1));
+  if (e.key === ' ' && !tgt.closest('button, a, [role=button], [role=tab]')) (e.preventDefault(), togglePlay());
+  else if (e.key === 'ArrowRight') (e.preventDefault(), go(state.step + 1));
   else if (e.key === 'ArrowLeft') (e.preventDefault(), go(state.step - 1));
   else if (e.key === 'Home') (e.preventDefault(), go(0));
   else if (e.key === 'End') (e.preventDefault(), go(t.steps.length - 1));
