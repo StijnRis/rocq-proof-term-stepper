@@ -315,15 +315,18 @@ function header(): HTMLElement {
   tab('stepper', 'Stepper');
   tab('gallery', 'Gallery');
   tab('paste', 'Paste your own');
-  const sel = h('select', { class: 'examples', 'aria-label': 'Example', onchange: (e: Event) => ((state.exampleId = (e.target as HTMLSelectElement).value), (state.step = 0), (state.tab = 'term'), render()) });
-  for (const ex of EXAMPLES) sel.append(h('option', { value: ex.id, selected: ex.id === state.exampleId ? true : null }, `${ex.tactic} — ${ex.title}`));
   return h(
     'header',
     { class: 'top' },
     h('div', { class: 'brand' }, h('h1', null, 'Rocq ', h('span', { class: 'muted' }, '(formerly Coq)'), ' tactic → proof term'), h('p', null, 'Every tactic builds part of a λ-term. Step through a proof and watch it grow. All terms are real ', h('code', null, 'Show Proof.'), ' output.')),
     nav,
-    state.page === 'stepper' ? sel : null,
   );
+}
+
+function examplePicker(): HTMLElement {
+  const sel = h('select', { class: 'examples', 'aria-label': 'Example', onchange: (e: Event) => ((state.exampleId = (e.target as HTMLSelectElement).value), (state.step = 0), (state.tab = 'term'), render()) });
+  for (const ex of EXAMPLES) sel.append(h('option', { value: ex.id, selected: ex.id === state.exampleId ? true : null }, `${ex.tactic} — ${ex.title}`));
+  return h('div', { class: 'pick' }, h('label', { for: 'example-select' }, 'Example'), Object.assign(sel, { id: 'example-select' }));
 }
 
 function about(): HTMLElement {
@@ -373,6 +376,7 @@ function render() {
     if (state.page === 'paste' && (!t || state.pasteEditing)) {
       main.append(h('div', { class: 'cols' }, scriptSide(t), h('section', { class: 'panel placeholder' }, h('h2', null, 'Proof term'), h('p', { class: 'muted' }, 'Run a script to see the term grow here.'))));
     } else if (t) {
+      if (state.page === 'stepper') main.append(examplePicker());
       main.append(h('p', { class: 'blurb' }, state.page === 'stepper' ? (EXAMPLES.find((e) => e.id === state.exampleId)?.blurb ?? '') : state.pasteStatus), h('div', { class: 'cols' }, scriptSide(t), termPanel(t)), legend(), stepperBar(t));
     }
   }
