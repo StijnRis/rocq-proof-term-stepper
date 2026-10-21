@@ -16,6 +16,8 @@ interface Props {
   exampleId?: string;
   /** Step to start at (the URL hash #N overrides it). */
   initialStep?: number;
+  /** Page heading (the h1), with the tactic as a badge. */
+  title?: string;
   /** Shown instead of the blurb (paste mode status). */
   note?: ReactNode;
   /** Extra control for the script panel header (paste mode: Edit button). */
@@ -24,7 +26,7 @@ interface Props {
 
 const short = (s: string, n: number) => (s.length > n ? s.slice(0, n - 2) + '…' : s);
 
-export function Stepper({ trace, exampleId, initialStep = 0, note, scriptAction }: Props) {
+export function Stepper({ trace, exampleId, initialStep = 0, title, note, scriptAction }: Props) {
   const router = useRouter();
   const [step, setStep] = useState(Math.min(initialStep, trace.steps.length - 1));
   const [tab, setTab] = useState<'term' | 'tree'>('term');
@@ -178,19 +180,29 @@ export function Stepper({ trace, exampleId, initialStep = 0, note, scriptAction 
 
   return (
     <>
-      {ex && (
-        <div className="pick">
-          <label htmlFor="example-select">Example</label>
-          <select id="example-select" className="examples" value={ex.id} onChange={(e) => router.push(`/tactics/${e.target.value}/`)}>
-            {EXAMPLES.map((e) => (
-              <option key={e.id} value={e.id}>
-                {e.tactic}: {e.title}
-              </option>
-            ))}
-          </select>
+      <div className="pagehead">
+        <div>
+          {title && (
+            <h1>
+              {title}
+              {ex && <code>{ex.tactic}</code>}
+            </h1>
+          )}
+          <p className="blurb">{note ?? ex?.blurb}</p>
         </div>
-      )}
-      <p className="blurb">{note ?? ex?.blurb}</p>
+        {ex && (
+          <div className="pick">
+            <label htmlFor="example-select">Example</label>
+            <select id="example-select" className="examples" value={ex.id} onChange={(e) => router.push(`/tactics/${e.target.value}/`)}>
+              {EXAMPLES.map((e) => (
+                <option key={e.id} value={e.id}>
+                  {e.tactic}: {e.title}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+      </div>
 
       <div className="cols">
         <section className="panel script-panel" aria-label="Tactic script">

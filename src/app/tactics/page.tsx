@@ -15,7 +15,12 @@ export const metadata: Metadata = pageMetadata(
 export default function Tactics() {
   return (
     <>
-      <p className="lead">One example per tactic. Each card shows the fragment of the term Coq built for it, taken from a recorded run.</p>
+      <div className="pagehead">
+        <div>
+          <h1>Tactics and the terms they build</h1>
+          <p className="blurb">One example per tactic. Each card shows the fragment of the term Coq built for it, taken from a recorded run.</p>
+        </div>
+      </div>
       <div className="gallery">
         {EXAMPLES.map((e) => {
           const trace = GALLERY[e.id];

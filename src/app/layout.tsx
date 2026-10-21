@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next';
+import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { NavLinks } from '@/components/NavLinks';
 import { SITE_DESCRIPTION, SITE_NAME, SITE_TITLE, SITE_URL } from '@/data/site';
@@ -46,15 +47,15 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="en">
       <body>
         <header className="top">
-          <div className="brand">
-            <h1>
-              Rocq <span className="muted">(formerly Coq)</span> tactic → proof term
-            </h1>
-            <p>
-              Every tactic builds part of a λ-term. Step through a proof and watch it grow. All terms are real <code>Show Proof.</code> output.
-            </p>
+          <div className="top-in">
+            <Link href="/" className="brand">
+              <span className="logo" aria-hidden="true">λ</span>
+              <span className="brand-name">
+                Rocq<span className="hide-sm"> proof terms</span> <small>formerly Coq</small>
+              </span>
+            </Link>
+            <NavLinks />
           </div>
-          <NavLinks />
         </header>
         <main className="main">{children}</main>
         <footer className="site">

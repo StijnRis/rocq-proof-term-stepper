@@ -42,9 +42,9 @@ export default async function TacticPage({ params }: { params: Promise<{ id: str
   };
   return (
     <>
-      <Stepper trace={trace} exampleId={id} initialStep={focusIndex(ex)} />
+      <Stepper trace={trace} exampleId={id} initialStep={focusIndex(ex)} title={ex.title} />
       <article className="prose">
-        <h2>{heading(ex)}</h2>
+        <h2>{ex.tactic} in Rocq (Coq)</h2>
         <p>{ex.blurb}</p>
         {info && (
           <p>

@@ -61,6 +61,7 @@ export function PasteRunner() {
       <Stepper
         trace={trace}
         initialStep={startAt}
+        title="Your script"
         note={status}
         scriptAction={
           <button type="button" className="btn small" onClick={() => setEditing(true)}>
@@ -71,7 +72,14 @@ export function PasteRunner() {
     );
 
   return (
-    <div className="cols">
+    <>
+      <div className="pagehead">
+        <div>
+          <h1>Run your own script</h1>
+          <p className="blurb">Paste a Rocq proof, run it, and step through the term it builds.</p>
+        </div>
+      </div>
+      <div className="cols">
       <section className="panel script-panel" aria-label="Rocq script">
         <div className="toolbar">
           <h2>Tactic script</h2>
@@ -95,6 +103,7 @@ export function PasteRunner() {
         <h2>Proof term</h2>
         <p className="muted">Run a script to see the term grow here.</p>
       </section>
-    </div>
+      </div>
+    </>
   );
 }
