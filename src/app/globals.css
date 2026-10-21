@@ -855,58 +855,46 @@ pre.coq-out {
   }
 }
 
-/* ---- accessibility / extras ---- */
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  white-space: nowrap;
+
+/* ---- layout additions for the Next.js version ---- */
+.prose {
+  max-width: 860px;
+  margin: 28px 0 0;
 }
-.skip {
-  position: absolute;
-  left: 8px;
-  top: -48px;
-  z-index: 100;
-  background: var(--teal);
-  color: #fff;
-  padding: 8px 14px;
-  border-radius: 8px;
-  text-decoration: none;
-  font-weight: 600;
+.prose h2 {
+  font-size: 22px;
+  margin: 0 0 8px;
+  text-transform: none;
+  letter-spacing: normal;
+  color: var(--ink);
 }
-.skip:focus {
-  top: 8px;
+.prose h3 {
+  font-size: 18px;
+  margin: 24px 0 6px;
 }
-.static-intro {
-  max-width: 760px;
+.prose p {
+  margin: 8px 0;
+}
+ol.steps {
+  padding-left: 22px;
+}
+ol.steps li {
+  margin: 14px 0;
+}
+ol.steps pre.term {
+  margin-top: 6px;
+}
+ul.others {
+  columns: 2 260px;
+  padding-left: 18px;
+}
+footer.site {
+  max-width: 1280px;
   margin: 0 auto;
-  padding: 32px 24px;
-}
-.static-intro h1 {
-  letter-spacing: -0.01em;
-}
-.nextbox {
-  display: flex;
-  gap: 8px;
-}
-.pick .btn.small {
-  margin-left: auto;
-  white-space: nowrap;
+  padding: 16px 24px 32px;
+  color: var(--muted);
+  font-size: 13px;
 }
 main:focus {
   outline: none;
-}
-@media (max-width: 860px) {
-  .stepper {
-    grid-template-columns: 1fr;
-  }
-  .stepper > .btn,
-  .nextbox {
-    justify-self: stretch;
-  }
-  .nextbox .btn {
-    flex: 1;
-  }
 }

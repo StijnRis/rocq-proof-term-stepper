@@ -36,7 +36,7 @@ The *Tidy* view re-lays-out Coq's text (one binder per name, collapsible predica
 * `pnpm test` pins what each tactic builds against the recorded output (`tests/accuracy.test.ts`).
 * `pnpm check:native` replays every gallery script through a native `coqc` and compares each `Show Proof.`:
   113/113 identical between native Coq 8.18 and the recorded jsCoq 8.17 output.
-* `pnpm build && pnpm e2e` drives the production build in Chromium, including paste mode with the real engine.
+* `pnpm build && pnpm e2e` drives the static export in Chromium, including paste mode with the real engine.
 
 ## What real output says (differences from commonly quoted tables)
 
@@ -76,12 +76,12 @@ Checked on Coq 8.17.1 / 8.18.0; the examples are in the gallery.
 I found no tool that puts the script and the growing term side by side with a stepper (searches on the
 Rocq Discourse, arXiv, Reservoir and general web, October 2026; absence of evidence, not proof of absence).
 
-## Search and sharing
+## Built with
 
-The app uses hash routes, which search engines treat as one page, so `pnpm build` also prerenders real HTML
-(`scripts/prerender.mjs`): `/tactics/` plus one page per example with the script and the recorded term after every
-sentence, a sitemap, `robots.txt`, canonical URLs, Open Graph/Twitter tags and JSON-LD. Page titles in the app follow the
-route, and every step has a shareable link (Copy link button). Set `SITE_URL` when building for another host.
+Next.js (App Router) with `output: 'export'`, so `pnpm build` writes plain static files to `out/`; GitHub Pages serves them, there is no server.
+Each tactic has its own page (`/tactics/<id>/`) with the stepper plus crawlable step-by-step text, and Next's metadata API provides the
+titles, descriptions, canonical URLs, Open Graph/Twitter tags, sitemap and `robots.txt`. Set `SITE_URL` (and `NEXT_PUBLIC_BASE_PATH`) when
+building for another host. Step links look like `/tactics/split/#3`.
 
 ## Limitations
 
@@ -95,13 +95,14 @@ route, and every step has a shareable link (Copy link button). Set `SITE_URL` wh
 
 ```sh
 pnpm install
-pnpm dev            # copies the jsCoq assets into public/ and starts Vite
+pnpm dev            # copies the jsCoq assets into public/ and starts Next.js
 pnpm test           # unit tests (parser, diff, layout, accuracy)
-pnpm build          # type-check, build, then prerender the static pages into dist/
-pnpm og             # re-render public/og.png (social preview) from recorded data
-pnpm e2e            # browser checks against the build (set CHROMIUM_PATH if needed)
+pnpm build          # static export to out/
+pnpm start          # serve out/ locally at http://localhost:3000/rocq-proof-term-stepper/
+pnpm e2e            # browser checks against out/ (set CHROMIUM_PATH if needed)
 pnpm gen:gallery    # re-record src/data/gallery.json with the real engine
 pnpm check:native   # compare the recorded gallery with a native coqc
+pnpm og             # re-render public/og.png (social preview)
 ```
 
 Pushing to `main` deploys to GitHub Pages through `.github/workflows/deploy.yml`

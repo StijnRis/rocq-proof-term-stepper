@@ -5,12 +5,10 @@ import { execFileSync } from 'node:child_process';
 import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { createServer } from 'vite';
+import { loadTs } from './load.mjs';
 
 const gallery = JSON.parse(readFileSync('src/data/gallery.json', 'utf8'));
-const server = await createServer({ logLevel: 'error', server: { middlewareMode: true } });
-const { splitSentences } = await server.ssrLoadModule('/src/core/script.ts');
-await server.close();
+const { splitSentences } = await loadTs('src/core/script.ts');
 
 const squash = (s) => s.replace(/\s+/g, '');
 let diffs = 0;

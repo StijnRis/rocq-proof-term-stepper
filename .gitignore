@@ -1,8 +1,10 @@
 node_modules
-dist
+out
+.next
+next-env.d.ts
 public/jscoq
 *.log
 .DS_Store
 test-results
 .scratch
-.vite
+*.tsbuildinfo
